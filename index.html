@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mein Gesundheits-Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0E0F13;
+  --surface: #16181E;
+  --surface2: #1E2028;
+  --border: #2A2D38;
+  --gold: #D4A843;
+  --gold-soft: rgba(212,168,67,0.12);
+  --green: #4CAF7D;
+  --green-soft: rgba(76,175,125,0.12);
+  --red: #E05252;
+  --red-soft: rgba(224,82,82,0.12);
+  --yellow: #F0C040;
+  --yellow-soft: rgba(240,192,64,0.12);
+  --blue: #5B9BD5;
+  --blue-soft: rgba(91,155,213,0.12);
+  --text: #E8E6E0;
+  --text-muted: #8A8A96;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; left: 0; top: 0;
+  width: 220px; height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 1.5rem 1rem;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.logo {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+  line-height: 1.2;
+}
+.logo span { display: block; font-size: 0.65rem; font-weight: 300; color: var(--text-muted); font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  margin-bottom: 2px;
+  text-decoration: none;
+}
+.nav-item:hover, .nav-item.active {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+.nav-section {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding: 1rem 0.8rem 0.4rem;
+  opacity: 0.5;
+}
+
+.date-badge {
+  margin-top: auto;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  text-align: center;
+}
+.date-badge .date-day { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--gold); line-height: 1; }
+.date-badge .date-info { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+/* ── MAIN ── */
+.main {
+  margin-left: 220px;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 2rem;
+}
+.topbar h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text);
+}
+.topbar h1 span { color: var(--gold); }
+
+.week-nav {
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.week-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.week-btn:hover { border-color: var(--gold); color: var(--gold); }
+.week-label { font-size: 0.82rem; color: var(--text-muted); padding: 0 0.5rem; }
+
+/* ── PROGRESS RING ── */
+.progress-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.progress-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.progress-card:hover { border-color: var(--gold); }
+.ring-wrap { position: relative; width: 70px; height: 70px; margin: 0 auto 0.6rem; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-wrap .ring-bg { fill: none; stroke: var(--border); stroke-width: 5; }
+.ring-wrap .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.ring-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9rem; font-weight: 600;
+}
+.progress-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+/* ── SECTIONS ── */
+.section { margin-bottom: 2.5rem; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* ── CARDS GRID ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* ── CHECKLIST ITEM ── */
+.check-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.check-card:hover { border-color: var(--border); transform: translateY(-1px); }
+.check-card.done { border-color: var(--green); background: var(--green-soft); }
+.check-card.forbidden { border-color: var(--red); background: var(--red-soft); }
+.check-card.water-card { border-color: var(--yellow); background: var(--yellow-soft); }
+
+.check-row {
+  display: flex; align-items: center; gap: 0.8rem;
+  cursor: pointer;
+}
+.check-box {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+}
+.check-box.checked { background: var(--green); border-color: var(--green); }
+.check-box.forbidden-box { border-color: var(--red); }
+
+.check-label { font-size: 0.88rem; font-weight: 500; flex: 1; }
+.check-sub { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+.time-chip {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.tc-gold { background: var(--gold-soft); color: var(--gold); }
+.tc-green { background: var(--green-soft); color: var(--green); }
+.tc-red { background: var(--red-soft); color: var(--red); }
+.tc-blue { background: var(--blue-soft); color: var(--blue); }
+.tc-yellow { background: var(--yellow-soft); color: var(--yellow); }
+
+/* ── WATER TRACKER ── */
+.water-tracker { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.water-drop {
+  font-size: 1.4rem;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.2s, transform 0.2s;
+  user-select: none;
+}
+.water-drop.filled { opacity: 1; transform: scale(1.1); }
+.water-label { font-size: 0.8rem; color: var(--yellow); font-weight: 600; margin-top: 0.3rem; }
+
+/* ── SUPPLEMENT CYCLES ── */
+.cycle-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  transition: all 0.2s;
+}
+.cycle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+.cycle-name { font-weight: 600; font-size: 0.88rem; }
+.cycle-status {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.status-active { background: var(--green-soft); color: var(--green); }
+.status-pause { background: var(--red-soft); color: var(--red); }
+.status-buy { background: var(--yellow-soft); color: var(--yellow); }
+
+.cycle-progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+.cycle-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.cycle-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); }
+
+/* ── MEAL PLAN ── */
+.meal-day-header {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s;
+}
+.meal-day-header:hover { background: var(--surface); }
+.meal-day-name { font-weight: 600; font-size: 0.9rem; }
+.meal-day-summary { font-size: 0.75rem; color: var(--text-muted); }
+
+.meal-slots { display: none; padding: 0.5rem 0 1rem; }
+.meal-slots.open { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+
+.meal-slot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem;
+}
+.meal-slot-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+.meal-slot-text { font-size: 0.82rem; line-height: 1.5; }
+.meal-ai-btn {
+  margin-top: 0.6rem;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.72rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  cursor: pointer;
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.meal-ai-btn:hover { background: var(--gold); color: var(--bg); }
+
+/* ── AI MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-title { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; color: var(--gold); margin-bottom: 1rem; }
+.modal-close { float: right; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+.ai-response {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text);
+  min-height: 80px;
+  white-space: pre-wrap;
+}
+.ai-loading { color: var(--gold); font-style: italic; }
+.ai-generate-btn {
+  margin-top: 1rem;
+  background: var(--gold);
+  border: none;
+  color: var(--bg);
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+.ai-generate-btn:hover { opacity: 0.85; }
+.ai-context-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  resize: none;
+  height: 60px;
+}
+.ai-context-input:focus { outline: none; border-color: var(--gold); }
+
+/* ── WEEK EDITOR ── */
+.week-editor {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.week-editor h3 { font-family: 'Fraunces', serif; font-size: 1rem; margin-bottom: 1rem; color: var(--gold); }
+.editor-day { margin-bottom: 1rem; }
+.editor-day-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.editor-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.editor-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  width: 100%;
+}
+.editor-input:focus { outline: none; border-color: var(--gold); }
+.editor-input::placeholder { color: var(--text-muted); }
+
+.save-btn {
+  background: var(--green);
+  border: none;
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: opacity 0.2s;
+}
+.save-btn:hover { opacity: 0.85; }
+
+/* ── SKIN PLAN ── */
+.skin-timeline { position: relative; padding-left: 1.5rem; }
+.skin-timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--gold), var(--green));
+}
+.skin-step { position: relative; margin-bottom: 1rem; }
+.skin-dot {
+  position: absolute; left: -1.5rem; top: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--bg);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.skin-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+}
+.skin-content strong { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }
+.skin-content p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+/* ── TAG (forbidden) ── */
+.forbidden-tag {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  background: var(--red-soft);
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  margin: 0.2rem;
+}
+
+/* ── TEA SECTION ── */
+.tea-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.8rem; }
+.tea-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.tea-card:hover { border-color: var(--green); }
+.tea-card.tea-done { border-color: var(--green); background: var(--green-soft); }
+.tea-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+.tea-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.2rem; }
+.tea-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+.tea-check { margin-top: 0.7rem; }
+
+/* ── MOBILE ── */
+.hamburger {
+  display: none;
+  position: fixed; top: 1rem; left: 1rem;
+  z-index: 300;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 1rem; padding-top: 4rem; }
+  .hamburger { display: block; }
+  .meal-slots.open { grid-template-columns: 1fr; }
+  .editor-inputs { grid-template-columns: 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .progress-section { grid-template-columns: repeat(2, 1fr); }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  background: var(--green);
+  color: white;
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 400;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── HEADER GRADIENT ── */
+.page-header {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute; top: -30px; right: -30px;
+  width: 150px; height: 150px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.05;
+}
+.page-header h2 { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 300; color: var(--text-muted); margin-bottom: 0.3rem; font-style: italic; }
+.page-header p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+
+/* Tab content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Smooth fade */
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+<nav class="sidebar" id="sidebar">
+  <div class="logo">صحتي<span>Mein Gesundheitsplan</span></div>
+
+  <div class="nav-section">Täglich</div>
+  <a class="nav-item active" onclick="showTab('dashboard')">
+    <span class="nav-icon">🏠</span> Dashboard
+  </a>
+  <a class="nav-item" onclick="showTab('checklist')">
+    <span class="nav-icon">✅</span> Checkliste
+  </a>
+  <a class="nav-item" onclick="showTab('supplements')">
+    <span class="nav-icon">💊</span> Supplements
+  </a>
+
+  <div class="nav-section">Ernährung</div>
+  <a class="nav-item" onclick="showTab('meals')">
+    <span class="nav-icon">🍽️</span> Essensplan
+  </a>
+  <a class="nav-item" onclick="showTab('teas')">
+    <span class="nav-icon">🍵</span> Tees
+  </a>
+
+  <div class="nav-section">Pflege</div>
+  <a class="nav-item" onclick="showTab('skincare')">
+    <span class="nav-icon">🌿</span> Pflegeroutine
+  </a>
+
+  <div class="nav-section">Planen</div>
+  <a class="nav-item" onclick="showTab('weekeditor')">
+    <span class="nav-icon">📅</span> Woche bearbeiten
+  </a>
+  <a class="nav-item" onclick="showTab('forbidden')">
+    <span class="nav-icon">🚫</span> Verboten
+  </a>
+
+  <div class="date-badge">
+    <div class="date-day" id="dateDayNum">--</div>
+    <div class="date-info" id="dateInfo">Heute</div>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="tab-content active fade-in" id="tab-dashboard">
+    <div class="topbar">
+      <h1>Guten Morgen, <span id="greetName">Bro</span> 👋</h1>
+      <div class="week-nav">
+        <button class="week-btn" onclick="changeWeek(-1)">←</button>
+        <span class="week-label" id="weekLabel">Diese Woche</span>
+        <button class="week-btn" onclick="changeWeek(1)">→</button>
+      </div>
+    </div>
+
+    <!-- Progress rings -->
+    <div class="progress-section">
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="ring-fill" cx="35" cy="35" r="28" stroke="var(--green)" id="ring-supp"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+          </svg>
+          <div class="ring-center" id="ring-supp-txt">0%</div>
+        </div>
+        <div class="progress-label">Supplements</div>
+      </div>
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="ring-fill" cx="35" cy="35" r="28" stroke="var(--yellow)" id="ring-water"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+          </svg>
+          <div class="ring-center" id="ring-water-txt">0%</div>
+        </div>
+        <div class="progress-label">Wasser</div>
+      </div>
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="ring-fill" cx="35" cy="35" r="28" stroke="var(--gold)" id="ring-meals"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+          </svg>
+          <div class="ring-center" id="ring-meals-txt">0%</div>
+        </div>
+        <div class="progress-label">Mahlzeiten</div>
+      </div>
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="ring-fill" cx="35" cy="35" r="28" stroke="var(--blue)" id="ring-care"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+          </svg>
+          <div class="ring-center" id="ring-care-txt">0%</div>
+        </div>
+        <div class="progress-label">Pflege</div>
+      </div>
+      <div class="progress-card">
+        <div class="ring-wrap">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="ring-fill" cx="35" cy="35" r="28" stroke="var(--red)" id="ring-avoid"
+              stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+          </svg>
+          <div class="ring-center" id="ring-avoid-txt">0%</div>
+        </div>
+        <div class="progress-label">Verboten ✓</div>
+      </div>
+    </div>
+
+    <!-- Today quick view -->
+    <div class="page-header">
+      <h2>بِسْمِ اللَّهِ</h2>
+      <p>Heute: Alles im Blick – Supplements, Wasser, Tees und Pflege. Klick auf die Checkliste um deinen Tag abzuhaken! 💪</p>
+    </div>
+
+    <!-- Water quick widget -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">💧 Wasser heute</div>
+      </div>
+      <div class="check-card water-card">
+        <div style="font-size:0.85rem; font-weight:600; color: var(--yellow);">Ziel: 2.5–3 Liter täglich</div>
+        <div class="water-tracker" id="waterDropsDash"></div>
+        <div class="water-label" id="waterLabelDash">0 / 10 Gläser (0.0 L)</div>
+      </div>
+    </div>
+
+    <!-- Today supplements quick -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">⚡ Heute noch offen</div>
+      </div>
+      <div class="cards-grid" id="todayPending"></div>
+    </div>
+  </div>
+
+  <!-- ══ CHECKLISTE ══ -->
+  <div class="tab-content fade-in" id="tab-checklist">
+    <div class="topbar"><h1>Tages<span>checkliste</span></h1></div>
+
+    <!-- Water -->
+    <div class="section">
+      <div class="section-title">💧 Wasser <span style="font-size:0.75rem;color:var(--text-muted);font-family:'DM Sans';font-weight:400;margin-left:0.5rem;">Ziel: 2.5–3L</span></div>
+      <div class="check-card water-card" style="margin-top:0.8rem;">
+        <div class="water-tracker" id="waterDrops"></div>
+        <div class="water-label" id="waterLabel">0 / 10 Gläser (0.0 L)</div>
+      </div>
+    </div>
+
+    <!-- Supplements -->
+    <div class="section">
+      <div class="section-title">💊 Supplements</div>
+      <div class="cards-grid" id="supplementChecklist" style="margin-top:0.8rem;"></div>
+    </div>
+
+    <!-- Tees -->
+    <div class="section">
+      <div class="section-title">🍵 Tees</div>
+      <div class="cards-grid" id="teaChecklist" style="margin-top:0.8rem;"></div>
+    </div>
+
+    <!-- Pflege -->
+    <div class="section">
+      <div class="section-title">🌿 Pflege</div>
+      <div class="cards-grid" id="careChecklist" style="margin-top:0.8rem;"></div>
+    </div>
+
+    <!-- Verboten meiden -->
+    <div class="section">
+      <div class="section-title">🚫 Heute gemieden?</div>
+      <div class="cards-grid" id="avoidChecklist" style="margin-top:0.8rem;"></div>
+    </div>
+  </div>
+
+  <!-- ══ SUPPLEMENTS ══ -->
+  <div class="tab-content fade-in" id="tab-supplements">
+    <div class="topbar"><h1>Supplement<span>plan</span></h1></div>
+    <div class="page-header">
+      <h2>Dein täglicher Plan</h2>
+      <p>Jedes Supplement mit Zeit, Dosis und Zyklus. Zink & Calcium nicht zusammen nehmen!</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⏱️ Supplement Zyklen</div>
+      <div class="cards-grid" id="cycleCards" style="margin-top:0.8rem;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📋 Tagesplan nach Uhrzeit</div>
+      <div id="suppTimeline" style="margin-top:0.8rem;"></div>
+    </div>
+  </div>
+
+  <!-- ══ MAHLZEITEN ══ -->
+  <div class="tab-content fade-in" id="tab-meals">
+    <div class="topbar"><h1>Essens<span>plan</span></h1></div>
+    <div class="page-header">
+      <h2>Halal · Ekzem-konform · High Protein</h2>
+      <p>Kein Sonnenblumenöl, kein Weißmehl, keine Süßigkeiten. Olivenöl stattdessen. KI hilft dir mit Ideen! 🤖</p>
+    </div>
+    <div id="mealPlanWeek"></div>
+  </div>
+
+  <!-- ══ TEES ══ -->
+  <div class="tab-content fade-in" id="tab-teas">
+    <div class="topbar"><h1>Tee<span>routine</span></h1></div>
+    <div class="page-header">
+      <h2>Natürliche Heilkräfte</h2>
+      <p>Tees unterstützen dein Immunsystem, helfen beim Ekzem und geben Energie. Hake täglich ab! ☕</p>
+    </div>
+    <div class="tea-grid" id="teaGrid"></div>
+  </div>
+
+  <!-- ══ PFLEGE ══ -->
+  <div class="tab-content fade-in" id="tab-skincare">
+    <div class="topbar"><h1>Pflege<span>routine</span></h1></div>
+
+    <div class="section">
+      <div class="section-title">🌅 Morgenroutine</div>
+      <div class="skin-timeline" style="margin-top:0.8rem;" id="morningCare"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌙 Abendroutine</div>
+      <div class="skin-timeline" style="margin-top:0.8rem;" id="eveningCare"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📅 Wöchentliche Pflege</div>
+      <div class="cards-grid" id="weeklyCare"></div>
+    </div>
+  </div>
+
+  <!-- ══ WOCHE BEARBEITEN ══ -->
+  <div class="tab-content fade-in" id="tab-weekeditor">
+    <div class="topbar"><h1>Woche <span>bearbeiten</span></h1></div>
+    <div class="page-header">
+      <h2>Erstell deine eigene Woche</h2>
+      <p>Trage hier deine Mahlzeiten für die nächste Woche ein. Wird automatisch gespeichert. Du kannst die KI um Ideen bitten! 🤖</p>
+    </div>
+    <div class="week-editor">
+      <h3>📅 Nächste Woche planen</h3>
+      <div id="weekEditorDays"></div>
+      <button class="save-btn" onclick="saveWeekPlan()">💾 Woche speichern</button>
+      <button class="save-btn" style="background:var(--blue); margin-left:0.5rem;" onclick="aiWeekSuggest()">🤖 KI-Vorschlag</button>
+    </div>
+  </div>
+
+  <!-- ══ VERBOTEN ══ -->
+  <div class="tab-content fade-in" id="tab-forbidden">
+    <div class="topbar"><h1>Ver<span>boten</span></h1></div>
+    <div class="page-header">
+      <h2>🚫 Diese Sachen MEIDEN (Arzt!)</h2>
+      <p>Wegen deinem Ekzem (erhöhtes IgE) hat dein Arzt folgendes verboten:</p>
+    </div>
+    <div class="section">
+      <div id="forbiddenList"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">✅ Stattdessen essen:</div>
+      <div class="cards-grid" id="goodList" style="margin-top:0.8rem;"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- AI MODAL -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">🤖 KI Essensidee</div>
+    <textarea class="ai-context-input" id="aiContext" placeholder="Zusatzinfos? z.B. 'Ich hab noch Hähnchen und Reis' oder 'schnell machen'..."></textarea>
+    <div class="ai-response" id="aiResponse">Drücke auf 'Idee holen' um eine Idee zu bekommen...</div>
+    <button class="ai-generate-btn" onclick="getAIIdea()">✨ Idee holen</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ DATA ══
+const DAYS = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+
+const supplements = [
+  { id:'morning-drink', name:'🌙 Morgen-Drink', time:'04:00 Nüchtern', desc:'Kurkuma + Schwarzkümmel + Honig in warmem Wasser', chip:'tc-gold', cycle:'permanent' },
+  { id:'b12', name:'💊 Vitamin B12', time:'Frühstück', desc:'1 Direkt-Stick (Tetesept 500)', chip:'tc-green', cycle:'3m-1m' },
+  { id:'zinc', name:'⚡ Zink', time:'Frühstück', desc:'1 Tablette zum Essen (nicht nüchtern!)', chip:'tc-green', cycle:'3m-1m' },
+  { id:'magnesium', name:'🦴 Magnesium+Ca+D3', time:'Mittagessen', desc:'1 Tablette (Doppelherz)', chip:'tc-blue', cycle:'herbst-fruehling' },
+  { id:'bkomplex', name:'🧠 B-Komplex Forte', time:'Mittagessen', desc:'1 Mini-Tablette (Taxofit)', chip:'tc-blue', cycle:'3m-1m' },
+  { id:'omega3', name:'🐟 Omega-3+D3+K2', time:'Mittagessen', desc:'2 Kapseln mit fetthaltiger Mahlzeit (Brandl)', chip:'tc-blue', cycle:'permanent' },
+  { id:'creatine', name:'💪 Creatine', time:'Nach Gym', desc:'3g in Wasser auflösen (Optimum Nutrition)', chip:'tc-gold', cycle:'permanent' },
+  { id:'probiotic', name:'🦠 Probiotika', time:'Abends', desc:'1 Kapsel/Stick vor dem Schlafen (kaufen!)', chip:'tc-green', cycle:'3m-1m' },
+];
+
+const cycles = [
+  { id:'b12', name:'Vitamin B12', cycle:'3 Monate nehmen, 1 Monat Pause', active:true, day:1, total:90 },
+  { id:'zinc', name:'Zink', cycle:'3 Monate nehmen, 1 Monat Pause', active:true, day:1, total:90 },
+  { id:'bkomplex', name:'B-Komplex Forte', cycle:'2-3 Monate, dann 1 Monat Pause', active:true, day:1, total:75 },
+  { id:'magnesium', name:'Magnesium+Ca+D3', cycle:'Herbst bis Frühling durchgehend', active:true, day:1, total:180 },
+  { id:'omega3', name:'Omega-3+D3+K2', cycle:'Dauerhaft 2 Kapseln täglich', active:true, day:1, total:365 },
+  { id:'creatine', name:'Creatine', cycle:'Dauerhaft 3g täglich (kein Absetzen nötig)', active:true, day:1, total:365 },
+  { id:'probiotic', name:'Probiotika', cycle:'3 Monate, dann 1 Monat Pause', active:false, day:0, total:90 },
+];
+
+const teas = [
+  { id:'ginger', name:'Ingwer Tee', icon:'🫚', desc:'Anti-entzündlich, gut für Darm & Ekzem. 1-2x täglich trinken.', benefit:'Entzündung ↓ · Immunsystem ↑', time:'Morgen oder Nachmittag' },
+  { id:'heimat', name:'Heimat Tee (Blut)', icon:'🌿', desc:'Deine Mischung für das Blut. Hilft beim Immunsystem & Kreislauf.', benefit:'Blut ✓ · Energie ↑', time:'Mittags oder Nachmittags' },
+  { id:'green', name:'Grüner Tee', icon:'🍵', desc:'Antioxidantien, hilft beim Lernen & Konzentration. Max 2 Tassen.', benefit:'Konzentration ↑ · Antioxidantien', time:'Morgen oder vor Uni' },
+];
+
+const careRoutine = {
+  morning: [
+    { step:'1', title:'🚿 Gesicht waschen', desc:'Lauwarmes Wasser, kein normales Seife – trocknet aus bei Ekzem!' },
+    { step:'2', title:'💧 CeraVe Creme auftragen', desc:'Feuchtigkeitscreme für Gesicht – noch während Haut leicht feucht ist.' },
+    { step:'3', title:'🖐️ Locobase Repair (Hände)', desc:'Nach jedem Händewaschen auftragen. Schützt die Haut-Barriere.' },
+  ],
+  evening: [
+    { step:'1', title:'🧼 Gesicht gründlich waschen', desc:'Lauwarm, sanft, parfümfrei.' },
+    { step:'2', title:'💊 Vitamin C Kapsel (Schaebens)', desc:'1 Kapsel öffnen, direkt auf gereinigte Haut auftragen. 10 min einwirken.' },
+    { step:'3', title:'💧 Feuchtigkeitscreme', desc:'CeraVe oder Locobase nach Vitamin C auftragen.' },
+    { step:'4', title:'🖐️ Locobase Repair (Hände) DICK', desc:'Abends dick auftragen. Optional: Baumwollhandschuhe drüber für beste Wirkung.' },
+  ],
+  weekly: [
+    { icon:'🎭', name:'Sheet Mask (Montag)', desc:'Hydrating Maske – Grundfeuchtigkeit', day:'Montag' },
+    { icon:'🧘', name:'Sheet Mask (Donnerstag)', desc:'Soothing Maske – beruhigt Ekzem-Haut', day:'Donnerstag' },
+    { icon:'🥥', name:'Kokosöl Haarmaske', desc:'1-2x/Woche: 30min einwirken lassen, dann mit Shampoo auswaschen', day:'Mi + Sa' },
+    { icon:'💈', name:'Red One Wax', desc:'Nur auf trockenes Haar, kleine Menge – nur zum Stylen, nicht zur Pflege!', day:'Nach Bedarf' },
+  ]
+};
+
+const careChecks = [
+  { id:'face-wash', name:'Gesicht waschen', time:'Morgen & Abend' },
+  { id:'cerave', name:'CeraVe Creme', time:'Morgen & Abend' },
+  { id:'locobase', name:'Locobase Repair (Hände)', time:'Nach Händewaschen' },
+  { id:'vitc', name:'Vitamin C Kapsel (Schaebens)', time:'Abends' },
+];
+
+const avoidItems = [
+  { id:'avoid-sunflower', name:'Sonnenblumenöl gemieden', desc:'Erhöht Entzündung (Omega-6)' },
+  { id:'avoid-banana', name:'Keine Banane', desc:'Arzt-Verbot wegen Ekzem' },
+  { id:'avoid-whitebread', name:'Kein Weißbrot/Weißmehl', desc:'Entzündungsfördernd' },
+  { id:'avoid-sugar', name:'Keine Süßigkeiten', desc:'Füttert schlechte Darmbakterien' },
+  { id:'avoid-carbonated', name:'Keine Kohlensäure', desc:'Verboten laut Arzt' },
+];
+
+const forbidden = [
+  { name:'🌻 Sonnenblumenöl', reason:'Omega-6 erhöht Entzündung im Körper' },
+  { name:'🍌 Banane', reason:'Arzt-Verbot – IgE Reaktion' },
+  { name:'🍞 Weißbrot / Weißmehl', reason:'Entzündungsfördernd, belastet Darm' },
+  { name:'🍭 Süßigkeiten / Zucker', reason:'Füttert schlechte Darmbakterien' },
+  { name:'🥤 Kohlensäure-Getränke', reason:'Arzt-Verbot bei Ekzem' },
+];
+
+const goodFoods = [
+  { icon:'🫒', name:'Olivenöl', desc:'Immer statt Sonnenblumenöl verwenden' },
+  { icon:'🐟', name:'Lachs / Thunfisch', desc:'Omega-3, 2-3x pro Woche' },
+  { icon:'🥦', name:'Gemüse (Brokkoli, Spinat)', desc:'Entzündungshemmend, Vitamine' },
+  { icon:'🧅', name:'Ingwer & Kurkuma', desc:'In Gerichte geben – anti-entzündlich' },
+  { icon:'🫘', name:'Linsen & Kichererbsen', desc:'Ballaststoffe für den Darm' },
+  { icon:'🥚', name:'Eier (halal)', desc:'Hochwertiges Protein täglich' },
+];
+
+// Default meal plan (week 1)
+const defaultMeals = {
+  'Montag': { frueh:'3 Eier + Vollkornbrot + grüner Tee', mittag:'Tagine Hackfleisch mit Ei', abend:'Hähnchen + Quinoa + gedünstetes Gemüse' },
+  'Dienstag': { frueh:'Haferflocken mit Wasser/Mandelmilch + Nüsse', mittag:'Tortilla (Kartoffel) mit Ei + Salat', abend:'Rinderhack-Bällchen + Tomatensauce + Vollkornnudeln' },
+  'Mittwoch': { frueh:'3 Eier Rührei + Vollkornbrot + Ingwertee', mittag:'Reis mit Garnelen', abend:'Lachs mit Süßkartoffelpüree + Brokkoli' },
+  'Donnerstag': { frueh:'Joghurt (ohne Zucker) + Haferflocken', mittag:'Vollkornspaghetti mit Hackfleisch', abend:'Hähnchen-Curry + Reis + Spinat' },
+  'Freitag': { frueh:'3 Eier + Vollkornbrot + grüner Tee', mittag:'Reis mit Fleisch (Iso\'s Rezept)', abend:'Rindfleisch-Wok + Paprika + Vollkornreis' },
+  'Samstag': { frueh:'Haferflocken + Leinsamen + Honig', mittag:'Gemüse mit Hähnchen (gebacken)', abend:'Hähnchen + Linsensalat + Olivenöl' },
+  'Sonntag': { frueh:'Eier + Avocado + Vollkornbrot', mittag:'Vollkornnudeln + Thunfisch + Olivenöl', abend:'Meal-Prep: Hähnchen + Hülsenfrüchte + Gemüse' },
+};
+
+// ══ STATE ══
+let state = JSON.parse(localStorage.getItem('healthState') || '{}');
+let currentWeek = 0;
+let aiMealSlot = '';
+let waterCount = parseInt(localStorage.getItem('waterCount') || '0');
+let currentDate = new Date();
+
+function saveState() {
+  localStorage.setItem('healthState', JSON.stringify(state));
+  localStorage.setItem('waterCount', waterCount);
+  updateRings();
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function isChecked(id) {
+  const key = today() + '-' + id;
+  return !!state[key];
+}
+
+function toggleCheck(id) {
+  const key = today() + '-' + id;
+  state[key] = !state[key];
+  saveState();
+  renderAll();
+  showToast(state[key] ? '✅ Erledigt!' : '↩️ Rückgängig');
+}
+
+// ══ RINGS ══
+function setRing(id, percent) {
+  const circle = document.getElementById('ring-' + id);
+  const txt = document.getElementById('ring-' + id + '-txt');
+  if (!circle || !txt) return;
+  const circ = 175.9;
+  const offset = circ - (circ * percent / 100);
+  circle.style.strokeDashoffset = offset;
+  txt.textContent = Math.round(percent) + '%';
+}
+
+function updateRings() {
+  // supplements
+  const done = supplements.filter(s => isChecked(s.id)).length;
+  setRing('supp', (done / supplements.length) * 100);
+
+  // water
+  setRing('water', (waterCount / 10) * 100);
+
+  // meals (check if at least breakfast done)
+  const mealKeys = ['frueh','mittag','abend'];
+  const mealDone = mealKeys.filter(k => isChecked('meal-'+k)).length;
+  setRing('meals', (mealDone / 3) * 100);
+
+  // care
+  const careDone = careChecks.filter(c => isChecked(c.id)).length;
+  setRing('care', (careDone / careChecks.length) * 100);
+
+  // avoid
+  const avoidDone = avoidItems.filter(a => isChecked(a.id)).length;
+  setRing('avoid', (avoidDone / avoidItems.length) * 100);
+}
+
+// ══ WATER ══
+function renderWater(containerId, labelId) {
+  const c = document.getElementById(containerId);
+  const l = document.getElementById(labelId);
+  if (!c) return;
+  c.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const d = document.createElement('span');
+    d.className = 'water-drop' + (i < waterCount ? ' filled' : '');
+    d.textContent = '💧';
+    d.onclick = () => {
+      waterCount = (i < waterCount) ? i : i + 1;
+      saveState();
+      renderWater('waterDrops', 'waterLabel');
+      renderWater('waterDropsDash', 'waterLabelDash');
+    };
+    c.appendChild(d);
+  }
+  if (l) l.textContent = waterCount + ' / 10 Gläser (' + (waterCount * 0.25).toFixed(1) + ' L)';
+}
+
+// ══ CHECKLIST RENDER ══
+function makeCheckCard(item, className = '') {
+  const checked = isChecked(item.id);
+  return `
+    <div class="check-card ${checked ? 'done' : ''} ${className}" onclick="toggleCheck('${item.id}')">
+      <div class="check-row">
+        <div class="check-box ${checked ? 'checked' : ''}">${checked ? '✓' : ''}</div>
+        <div>
+          <div class="check-label">${item.name}</div>
+          ${item.time ? `<div class="check-sub">⏰ ${item.time}</div>` : ''}
+          ${item.desc ? `<div class="check-sub">${item.desc}</div>` : ''}
+        </div>
+        ${item.chip ? `<span class="time-chip ${item.chip}">${item.time}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function makeAvoidCard(item) {
+  const checked = isChecked(item.id);
+  return `
+    <div class="check-card ${checked ? 'done' : 'forbidden'}" onclick="toggleCheck('${item.id}')">
+      <div class="check-row">
+        <div class="check-box ${checked ? 'checked' : 'forbidden-box'}">${checked ? '✓' : '✗'}</div>
+        <div>
+          <div class="check-label">${item.name}</div>
+          <div class="check-sub">${item.desc}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══ SUPPLEMENT TIMELINE ══
+function renderSuppTimeline() {
+  const cont = document.getElementById('suppTimeline');
+  if (!cont) return;
+  const groups = {
+    '🌙 04:00 – Nach Fajr (nüchtern)': supplements.filter(s => s.time.includes('04:00')),
+    '🌅 Frühstück (bis 11:30)': supplements.filter(s => s.time.includes('Frühstück')),
+    '☀️ Mittagessen (bis 16:30)': supplements.filter(s => s.time.includes('Mittagessen')),
+    '💪 Nach Gym': supplements.filter(s => s.time.includes('Gym')),
+    '🌙 Abends vor Schlaf': supplements.filter(s => s.time.includes('Abends')),
+  };
+  let html = '';
+  for (const [label, items] of Object.entries(groups)) {
+    if (!items.length) continue;
+    html += `<div style="margin-bottom:1.2rem;">
+      <div style="font-size:0.8rem;font-weight:600;color:var(--gold);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
+      <div class="cards-grid">`;
+    items.forEach(s => { html += makeCheckCard(s); });
+    html += `</div></div>`;
+  }
+  cont.innerHTML = html;
+  cont.querySelectorAll('.check-card').forEach(card => {
+    card.addEventListener('click', () => { renderSuppTimeline(); updateRings(); });
+  });
+}
+
+// ══ CYCLES ══
+function renderCycles() {
+  const cont = document.getElementById('cycleCards');
+  if (!cont) return;
+  let html = '';
+  cycles.forEach(c => {
+    const pct = Math.min(100, Math.round((c.day / c.total) * 100));
+    const statusClass = !c.active ? 'status-buy' : (c.day > 0 ? 'status-active' : 'status-pause');
+    const statusText = !c.active ? '🛒 Kaufen' : (c.day > 0 ? '✅ Aktiv' : '⏸ Pause');
+    const color = c.active ? 'var(--green)' : 'var(--yellow)';
+    html += `<div class="cycle-card">
+      <div class="cycle-header">
+        <div class="cycle-name">${c.name}</div>
+        <div class="cycle-status ${statusClass}">${statusText}</div>
+      </div>
+      <div class="check-sub" style="margin-bottom:0.5rem;">${c.cycle}</div>
+      <div class="cycle-progress-bar">
+        <div class="cycle-fill" style="width:${pct}%;background:${color};"></div>
+      </div>
+      <div class="cycle-meta">
+        <span>Tag ${c.day} / ${c.total}</span>
+        <span>${pct}%</span>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+// ══ MEALS ══
+function getMeals() {
+  const saved = localStorage.getItem('mealPlan');
+  return saved ? JSON.parse(saved) : defaultMeals;
+}
+
+function renderMealPlan() {
+  const cont = document.getElementById('mealPlanWeek');
+  if (!cont) return;
+  const meals = getMeals();
+  let html = '';
+  DAYS.forEach(day => {
+    const m = meals[day] || { frueh:'–', mittag:'–', abend:'–' };
+    html += `
+      <div class="meal-day-header" onclick="toggleMealDay('${day}')">
+        <div class="meal-day-name">📅 ${day}</div>
+        <div class="meal-day-summary">${m.frueh.substring(0,30)}...</div>
+      </div>
+      <div class="meal-slots" id="mealday-${day}">
+        ${mealSlot('🌅 Frühstück', m.frueh, day, 'frueh')}
+        ${mealSlot('☀️ Mittagessen', m.mittag, day, 'mittag')}
+        ${mealSlot('🌙 Abendessen', m.abend, day, 'abend')}
+      </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function mealSlot(title, text, day, slot) {
+  return `<div class="meal-slot">
+    <div class="meal-slot-title">${title}</div>
+    <div class="meal-slot-text">${text}</div>
+    <button class="meal-ai-btn" onclick="openAI('${day}','${slot}','${title}'); event.stopPropagation();">🤖 KI-Idee</button>
+  </div>`;
+}
+
+function toggleMealDay(day) {
+  const el = document.getElementById('mealday-' + day);
+  el.classList.toggle('open');
+}
+
+// ══ TEAS ══
+function renderTeas() {
+  const cont = document.getElementById('teaGrid');
+  const checkCont = document.getElementById('teaChecklist');
+  if (cont) {
+    cont.innerHTML = teas.map(t => {
+      const done = isChecked('tea-' + t.id);
+      return `<div class="tea-card ${done ? 'tea-done' : ''}" onclick="toggleCheck('tea-${t.id}'); renderTeas();">
+        <div class="tea-icon">${t.icon}</div>
+        <div class="tea-name">${t.name}</div>
+        <div class="tea-desc">${t.desc}</div>
+        <div class="check-sub" style="margin-top:0.4rem;">⏰ ${t.time}</div>
+        <div class="check-sub" style="color:var(--green);margin-top:0.2rem;">✓ ${t.benefit}</div>
+        <div class="tea-check">
+          <div class="check-box ${done ? 'checked' : ''}" style="display:inline-flex;">${done ? '✓ Heute getrunken!' : 'Heute noch nicht'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if (checkCont) {
+    checkCont.innerHTML = teas.map(t => makeCheckCard({
+      id: 'tea-' + t.id, name: t.icon + ' ' + t.name, time: t.time, desc: t.benefit, chip: 'tc-green'
+    })).join('');
+  }
+}
+
+// ══ CARE ══
+function renderCare() {
+  const mc = document.getElementById('morningCare');
+  const ec = document.getElementById('eveningCare');
+  const wc = document.getElementById('weeklyCare');
+  const cc = document.getElementById('careChecklist');
+
+  if (mc) mc.innerHTML = careRoutine.morning.map(s => `
+    <div class="skin-step">
+      <div class="skin-dot">${s.step}</div>
+      <div class="skin-content"><strong>${s.title}</strong><p>${s.desc}</p></div>
+    </div>`).join('');
+
+  if (ec) ec.innerHTML = careRoutine.evening.map(s => `
+    <div class="skin-step">
+      <div class="skin-dot" style="background:var(--blue);color:white;">${s.step}</div>
+      <div class="skin-content"><strong>${s.title}</strong><p>${s.desc}</p></div>
+    </div>`).join('');
+
+  if (wc) wc.innerHTML = careRoutine.weekly.map(s => `
+    <div class="check-card">
+      <div style="font-size:1.5rem;">${s.icon}</div>
+      <div class="check-label">${s.name}</div>
+      <div class="check-sub">${s.desc}</div>
+      <div class="time-chip tc-blue" style="margin-top:0.4rem;display:inline-block;">${s.day}</div>
+    </div>`).join('');
+
+  if (cc) cc.innerHTML = careChecks.map(c => makeCheckCard(c)).join('');
+}
+
+// ══ FORBIDDEN ══
+function renderForbidden() {
+  const fl = document.getElementById('forbiddenList');
+  const gl = document.getElementById('goodList');
+  if (fl) fl.innerHTML = forbidden.map(f => `
+    <div style="display:flex;align-items:flex-start;gap:1rem;background:var(--red-soft);border:1px solid var(--red);border-radius:var(--radius-sm);padding:1rem;margin-bottom:0.6rem;">
+      <div class="forbidden-tag">${f.name}</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;">${f.reason}</div>
+    </div>`).join('');
+  if (gl) gl.innerHTML = goodFoods.map(g => `
+    <div class="check-card">
+      <div style="font-size:1.5rem;">${g.icon}</div>
+      <div class="check-label">${g.name}</div>
+      <div class="check-sub">${g.desc}</div>
+    </div>`).join('');
+}
+
+// ══ WEEK EDITOR ══
+function renderWeekEditor() {
+  const cont = document.getElementById('weekEditorDays');
+  if (!cont) return;
+  const meals = getMeals();
+  let html = '';
+  DAYS.forEach(day => {
+    const m = meals[day] || { frueh:'', mittag:'', abend:'' };
+    html += `<div class="editor-day">
+      <div class="editor-day-label">${day}</div>
+      <div class="editor-inputs">
+        <input class="editor-input" placeholder="🌅 Frühstück" value="${m.frueh}" id="edit-${day}-frueh">
+        <input class="editor-input" placeholder="☀️ Mittagessen" value="${m.mittag}" id="edit-${day}-mittag">
+        <input class="editor-input" placeholder="🌙 Abendessen" value="${m.abend}" id="edit-${day}-abend">
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function saveWeekPlan() {
+  const meals = {};
+  DAYS.forEach(day => {
+    meals[day] = {
+      frueh: document.getElementById('edit-' + day + '-frueh')?.value || '',
+      mittag: document.getElementById('edit-' + day + '-mittag')?.value || '',
+      abend: document.getElementById('edit-' + day + '-abend')?.value || '',
+    };
+  });
+  localStorage.setItem('mealPlan', JSON.stringify(meals));
+  showToast('💾 Wochenplan gespeichert!');
+  renderMealPlan();
+}
+
+// ══ PENDING TODAY ══
+function renderTodayPending() {
+  const cont = document.getElementById('todayPending');
+  if (!cont) return;
+  const pending = supplements.filter(s => !isChecked(s.id));
+  if (!pending.length) {
+    cont.innerHTML = '<div class="check-card done" style="grid-column:1/-1;text-align:center;padding:2rem;"><div style="font-size:2rem;">🎉</div><div class="check-label">Alle Supplements für heute erledigt!</div></div>';
+    return;
+  }
+  cont.innerHTML = pending.slice(0,4).map(s => makeCheckCard(s)).join('');
+}
+
+// ══ DATE ══
+function updateDate() {
+  const d = new Date();
+  const el = document.getElementById('dateDayNum');
+  const info = document.getElementById('dateInfo');
+  if (el) el.textContent = d.getDate();
+  if (info) info.textContent = d.toLocaleDateString('de-DE', { weekday:'short', month:'short' });
+}
+
+// ══ AI ══
+let currentAISlot = {};
+
+function openAI(day, slot, title) {
+  currentAISlot = { day, slot, title };
+  document.getElementById('aiResponse').textContent = 'Drücke auf "Idee holen" um eine Idee zu bekommen...';
+  document.getElementById('aiContext').value = '';
+  document.getElementById('aiModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('aiModal').classList.remove('open');
+}
+
+async function getAIIdea() {
+  const btn = document.querySelector('.ai-generate-btn');
+  const responseEl = document.getElementById('aiResponse');
+  const context = document.getElementById('aiContext').value;
+  btn.disabled = true;
+  btn.textContent = '⏳ Lädt...';
+  responseEl.innerHTML = '<span class="ai-loading">KI denkt nach...</span>';
+
+  const prompt = `Du bist ein Ernährungsberater. Gib eine konkrete Essensidee für ${currentAISlot.title} am ${currentAISlot.day}.
+Wichtige Regeln:
+- Halal (kein Schwein, kein Alkohol)
+- Kein Sonnenblumenöl (Olivenöl stattdessen)
+- Kein Weißmehl/Weißbrot
+- Keine Süßigkeiten
+- Keine Banane
+- Ekzem-freundlich (wenig Entzündungstreiber)
+- Proteinreich (Student der trainiert)
+${context ? `Zusatz: ${context}` : ''}
+Gib NUR die Essensidee in 3-5 Sätzen. Konkret mit Zutaten und kurzer Zubereitung. Auf Deutsch.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || 'Fehler beim Laden.';
+    responseEl.textContent = text;
+  } catch (e) {
+    responseEl.textContent = '⚠️ Fehler: Prüfe deine Internetverbindung oder API-Key.';
+  }
+  btn.disabled = false;
+  btn.textContent = '✨ Neue Idee';
+}
+
+async function aiWeekSuggest() {
+  showToast('🤖 KI erstellt Wochenplan...');
+  const prompt = `Erstelle einen kompletten Wochenplan (Montag-Sonntag) für Frühstück, Mittagessen und Abendessen.
+Regeln: Halal, kein Sonnenblumenöl, kein Weißmehl, keine Süßigkeiten, keine Banane, proteinreich, Ekzem-freundlich.
+Antworte NUR als JSON in diesem Format ohne Backticks:
+{"Montag":{"frueh":"...","mittag":"...","abend":"..."},"Dienstag":{...},...}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const meals = JSON.parse(clean);
+    localStorage.setItem('mealPlan', JSON.stringify(meals));
+    renderWeekEditor();
+    renderMealPlan();
+    showToast('✅ KI-Wochenplan geladen!');
+  } catch (e) {
+    showToast('⚠️ Fehler beim KI-Wochenplan');
+  }
+}
+
+// ══ NAV ══
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tab = document.getElementById('tab-' + id);
+  if (tab) { tab.classList.add('active'); tab.classList.add('fade-in'); }
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  renderAll();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function changeWeek(dir) {
+  currentWeek += dir;
+  const label = currentWeek === 0 ? 'Diese Woche' : currentWeek > 0 ? `+${currentWeek} Woche` : `${currentWeek} Woche`;
+  document.getElementById('weekLabel').textContent = label;
+}
+
+// ══ TOAST ══
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══ RENDER ALL ══
+function renderAll() {
+  renderWater('waterDrops', 'waterLabel');
+  renderWater('waterDropsDash', 'waterLabelDash');
+
+  const sc = document.getElementById('supplementChecklist');
+  if (sc) sc.innerHTML = supplements.map(s => makeCheckCard(s)).join('');
+
+  const ac = document.getElementById('avoidChecklist');
+  if (ac) ac.innerHTML = avoidItems.map(a => makeAvoidCard(a)).join('');
+
+  renderTeas();
+  renderCare();
+  renderSuppTimeline();
+  renderCycles();
+  renderMealPlan();
+  renderForbidden();
+  renderWeekEditor();
+  renderTodayPending();
+  updateRings();
+  updateDate();
+}
+
+// ══ INIT ══
+document.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+  // Reset water each new day
+  const lastDay = localStorage.getItem('lastDay');
+  const todayStr = today();
+  if (lastDay !== todayStr) {
+    waterCount = 0;
+    localStorage.setItem('lastDay', todayStr);
+    localStorage.setItem('waterCount', 0);
+  }
+  renderAll();
+});
+
+// Close modal on overlay click
+document.getElementById('aiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
